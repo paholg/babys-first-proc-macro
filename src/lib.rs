@@ -33,10 +33,13 @@
 //@   custom derives, but the input is not automatically included in your code; you
 //@   will have to include it yourself if you want it.
 //@
+//@ For more information, see
+//@ [The Rust Reference](https://doc.rust-lang.org/reference/procedural-macros.html).
+//@
 //@ ## Getting started
 //@
-//@ Let's get started by writing our own proc-macro! We're going to right a
-//@ simplified version of the aforementioned proc-macro,
+//@ Let's get started by writing our own proc-macro! We're going to write a
+//@ simplified version of my first proc-macro,
 //@ [subenum](https://crates.io/subenum). Subenum takes an enum as input, as well as
 //@ some attributes to designate which variants we're interested in, and will output
 //@ a new enum (or enums) with those variants, as well as the ability to convert and
@@ -46,6 +49,7 @@
 //@
 //@ ```ignore,rust
 //@ #[subenum(Dog)]
+//@ #[derive(Copy, Clone, Debug)]
 //@ enum Canis {
 //@     Wolf,
 //@     #[subenum(Dog)]
@@ -61,6 +65,7 @@
 //@ we should produce
 //@
 //@ ```ignore,rust
+//@ #[derive(Copy, Clone, Debug)]
 //@ enum Dog {
 //@   GermanShephard,
 //@   Boxer,
@@ -75,7 +80,7 @@
 //@ Let's get started! First thing we're going to use some crates that will do a lot
 //@ of heavy lifting for us. If we just use the standard library, we are stuck with
 //@ the [`TokenStream`](https://doc.rust-lang.org/proc_macro/struct.TokenStream.html)
-//@ type, which is to the easiest to work with.
+//@ type, which is not the easiest to work with.
 //@
 //@ Let's start with our `Cargo.toml`:
 //@
@@ -104,14 +109,15 @@
 //@ The `quote` crate gives us, among other things, the `quote!` macro which makes
 //@ it so we can produce code in similar ways we would when writing a normal macro.
 //@
-//@ The `syn` quote gives us lots of useful data structures, and will parse our
+//@ The `syn` crate gives us lots of useful data structures, and will parse our
 //@ macro input.
 //@
 //@ The `proc-macro2` crate provides, among other things, a different
 //@ `TokenStream` type that is used by `quote` and `syn`.
 //@
 //@ Finally, `tango` is a crate for literate programming. It's what allows this
-//@ document to both be a markdown file and functioning, testable Rust code.
+//@ document to both be a markdown file and functioning, testable Rust code. You can
+//@ see it as Rust code here: [lib.rs](lib.rs).
 //@
 //@ A note before we get going: I find it very useful to install `cargo-expand`
 //@ and write a simple example using the proc-macro in, say, `tests/it.rs`.
@@ -119,8 +125,8 @@
 //@ producing. Also, you can just throw a `panic!` in your code as a helpful
 //@ print.
 //@
-//@ Let's get started writing `lib.rs`. We'll start by defining a type to
-//@ represent our subenum.
+//@ Let's get started writing `lib.rs`. We'll want a type to represent our subenum,
+//@ so let's define it.
 
 struct Enum {
     ident: syn::Ident,
@@ -136,17 +142,19 @@ impl Enum {
     }
 }
 //@ An [`Ident`](https://docs.rs/syn/latest/syn/struct.Ident.html) is simply an
-//@ identifier, and we can create these from strings.
+//@ identifier, and we can create these from strings. It will be the name of our enum.
 //@ [`Punctuated`](https://docs.rs/syn/latest/syn/punctuated/struct.Punctuated.html)
 //@ is like a `Vec`, but will be rendered with the given token interspersed between
 //@ items, and [`Variant`](https://docs.rs/syn/latest/syn/struct.Variant.html)
-//@ represents and enum variant.
+//@ represents an enum variant.
 //@
-//@ It seems like what we would want is
-//@ a custom derive, the there's a catch. The input to a derive macro does not
-//@ include the other derive macros! So if we want to, for example, inherit a
-//@ `#[derive(Clone)]`, we can't do that using a custom derive. An attribute macro
-//@ it is then!
+//@ It seems like what we would want is a custom derive, but there's a catch. The
+//@ input to a derive macro does not include the other derive calls! So if we want
+//@ to, for example, inherit a `#[derive(Clone)]` on our subenum, we can't do that
+//@ using a custom derive. An attribute macro it is then!
+//@
+//@ A proc-macro crate must produce a public function from `lib.rs`, annotated with
+//@ the kind of proc-macro it is, and nothing else.
 
 use proc_macro::TokenStream;
 
