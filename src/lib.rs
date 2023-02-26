@@ -206,8 +206,10 @@ pub fn subenum(args: TokenStream, tokens: TokenStream) -> TokenStream {
     //@ One thing I love about writing proc-macros is that you can just panic
     //@ as error-handling. Any panics end up as compiler errors.
     //@
-    //@ Now, we want to be able to go from a `Variant` to a list of subenum
-    //@ idents.
+    //@ Now, we want to be able to go from a
+    //@ [`Variant`](https://docs.rs/syn/latest/syn/struct.Variant.html) to a list of
+    //@ subenum idents.
+
     const SUBENUM: &str = "subenum";
     fn subenum_idents(variant: &syn::Variant) -> impl Iterator<Item = syn::Ident> + '_ {
         variant
