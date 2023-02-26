@@ -1,4 +1,4 @@
-//@ # Baby's First Proc Macro
+//@ # Baby's First Proc Macro - A literate tutorial
 //@
 //@ I recently wrote my first proc-macro, and found it a bit hard to get started.
 //@ There's a lot of really basic documentation, some workshops, and very helpful
