@@ -201,8 +201,6 @@ pub fn subenum(args: TokenStream, tokens: TokenStream) -> TokenStream {
     //@
     //@ Now, we want to be able to go from a `Variant` to a list of subenum
     //@ idents.
-    //@ Of course, if you don't want to mess with lifetimes, you could just as easily make this
-    //@ function return a `Vec<Ident>` instead.
     const SUBENUM: &str = "subenum";
     fn subenum_idents(variant: &syn::Variant) -> impl Iterator<Item = syn::Ident> + '_ {
         variant

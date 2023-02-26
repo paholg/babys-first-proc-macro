@@ -211,8 +211,6 @@ as error-handling. Any panics end up as compiler errors.
 
 Now, we want to be able to go from a `Variant` to a list of subenum
 idents.
-Of course, if you don't want to mess with lifetimes, you could just as easily make this
-function return a `Vec<Ident>` instead.
 ```rust
     const SUBENUM: &str = "subenum";
     fn subenum_idents(variant: &syn::Variant) -> impl Iterator<Item = syn::Ident> + '_ {
