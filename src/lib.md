@@ -4,7 +4,8 @@ I recently wrote my first proc-macro, and found it a bit hard to get started.
 There's a lot of really basic documentation, some workshops, and very helpful
 API documentation. But there's lacking in what I would call "intermediate"
 tutorials, so that is what this will aim to be. You are expected to be
-comfortable with Rust in general, but not with procedural macros at all.
+comfortable with Rust in general, but not with procedural macros at all, and we
+will have a working, useful proc-macro at the end.
 
 ## Proc...macro?
 
@@ -141,8 +142,7 @@ identifier, and we can create these from strings.
 [`Punctuated`](https://docs.rs/syn/latest/syn/punctuated/struct.Punctuated.html)
 is like a `Vec`, but will be rendered with the given token interspersed between
 items, and [`Variant`](https://docs.rs/syn/latest/syn/struct.Variant.html)
-represents and enum variant. When it comes time to render our enum, we can do
-it like so:
+represents and enum variant.
 
 It seems like what we would want is
 a custom derive, the there's a catch. The input to a derive macro does not

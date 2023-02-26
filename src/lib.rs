@@ -4,7 +4,8 @@
 //@ There's a lot of really basic documentation, some workshops, and very helpful
 //@ API documentation. But there's lacking in what I would call "intermediate"
 //@ tutorials, so that is what this will aim to be. You are expected to be
-//@ comfortable with Rust in general, but not with procedural macros at all.
+//@ comfortable with Rust in general, but not with procedural macros at all, and we
+//@ will have a working, useful proc-macro at the end.
 //@
 //@ ## Proc...macro?
 //@
@@ -139,8 +140,7 @@ impl Enum {
 //@ [`Punctuated`](https://docs.rs/syn/latest/syn/punctuated/struct.Punctuated.html)
 //@ is like a `Vec`, but will be rendered with the given token interspersed between
 //@ items, and [`Variant`](https://docs.rs/syn/latest/syn/struct.Variant.html)
-//@ represents and enum variant. When it comes time to render our enum, we can do
-//@ it like so:
+//@ represents and enum variant.
 //@
 //@ It seems like what we would want is
 //@ a custom derive, the there's a catch. The input to a derive macro does not
@@ -152,18 +152,18 @@ use proc_macro::TokenStream;
 
 #[proc_macro_attribute]
 pub fn subenum(args: TokenStream, tokens: TokenStream) -> TokenStream {
-    //@ The `args` are the arguments to our macro (the `Dog` in `#[subenum(Dog)]`), and
-    //@ the `tokens` are everything else.
-    //@
-    //@ Fortunately, `syn` gives us some nice types to parse these as;
-    //@ [`AttributeArgs`](https://docs.rs/syn/latest/syn/type.AttributeArgs.html) and
-    //@ [`DeriveInput`](https://docs.rs/syn/latest/syn/struct.DeriveInput.html),
-    //@ respectively.
+//@ The `args` are the arguments to our macro (the `Dog` in `#[subenum(Dog)]`), and
+//@ the `tokens` are everything else.
+//@
+//@ Fortunately, `syn` gives us some nice types to parse these as;
+//@ [`AttributeArgs`](https://docs.rs/syn/latest/syn/type.AttributeArgs.html) and
+//@ [`DeriveInput`](https://docs.rs/syn/latest/syn/struct.DeriveInput.html),
+//@ respectively.
 
     let args = syn::parse_macro_input!(args as syn::AttributeArgs);
     let mut input = syn::parse_macro_input!(tokens as syn::DeriveInput);
 
-    //@ From the args, we can get a map of our subenums to create:
+//@ From the args, we can get a map of our subenums to create:
 
     let mut enum_map: std::collections::HashMap<syn::Ident, Enum> = args
         .into_iter()
@@ -179,22 +179,22 @@ pub fn subenum(args: TokenStream, tokens: TokenStream) -> TokenStream {
         .map(|ident| (ident.clone(), Enum::new(ident)))
         .collect();
 
-    //@ Now, for each variant in the input enum, we can look up the `#[subenum()]`
-    //@ attribute. If it's there, we need to look at its attributes (say, `Dog`),
-    //@ and, for each one, add that variant to the entry in the map.
+//@ Now, for each variant in the input enum, we can look up the `#[subenum()]`
+//@ attribute. If it's there, we need to look at its attributes (say, `Dog`),
+//@ and, for each one, add that variant to the entry in the map.
 
     let data = match input.data {
         syn::Data::Enum(ref mut data) => data,
         _ => panic!("Not an enum!"),
     };
 
-    //@ One thing I love about writing proc-macros is that you can just panic
-    //@ as error-handling. Any panics end up as compiler errors.
-    //@
-    //@ Now, we want to be able to go from a `Variant` to a list of subenum
-    //@ idents.
-    //@ Of course, if you don't want to mess with lifetimes, you could just as easily make this
-    //@ function return a `Vec<Ident>` instead.
+//@ One thing I love about writing proc-macros is that you can just panic
+//@ as error-handling. Any panics end up as compiler errors.
+//@
+//@ Now, we want to be able to go from a `Variant` to a list of subenum
+//@ idents.
+//@ Of course, if you don't want to mess with lifetimes, you could just as easily make this
+//@ function return a `Vec<Ident>` instead.
     const SUBENUM: &str = "subenum";
     fn subenum_idents(variant: &syn::Variant) -> impl Iterator<Item = syn::Ident> + '_ {
         variant
@@ -202,8 +202,8 @@ pub fn subenum(args: TokenStream, tokens: TokenStream) -> TokenStream {
             .iter()
             .filter(|attr| attr.path.is_ident(SUBENUM))
             .filter_map(|subenum_attr| subenum_attr.parse_meta().ok())
-            //@ `Attribute::parse_meta` gives us a [`Meta`](https://docs.rs/syn/latest/syn/enum.Meta.html),
-            //@ which is much nicer to work with than the `TokenStream` we would otherwise have.
+//@ `Attribute::parse_meta` gives us a [`Meta`](https://docs.rs/syn/latest/syn/enum.Meta.html),
+//@ which is much nicer to work with than the `TokenStream` we would otherwise have.
             .flat_map(|meta| match meta {
                 syn::Meta::List(list) => list.nested.into_iter(),
                 _ => panic!("#[subenum] attributes must be supplied a list"),
@@ -212,11 +212,11 @@ pub fn subenum(args: TokenStream, tokens: TokenStream) -> TokenStream {
                 syn::NestedMeta::Meta(meta) => meta,
                 syn::NestedMeta::Lit(_) => panic!("#[subenum] does not accept literals"),
             })
-            //@ Okay, we now have an iterator over the interior `Meta` objects;
-            //@ given `#[subenum(Foo, Bar)]`, this would be an iterator over
-            //@ `Foo` and `Bar`. These are
-            //@ [`Path`](https://docs.rs/syn/latest/syn/struct.Path.html)s,
-            //@ though for use they should really be `Ident`s.
+//@ Okay, we now have an iterator over the interior `Meta` objects;
+//@ given `#[subenum(Foo, Bar)]`, this would be an iterator over
+//@ `Foo` and `Bar`. These are
+//@ [`Path`](https://docs.rs/syn/latest/syn/struct.Path.html)s,
+//@ though for use they should really be `Ident`s.
             .map(|meta| match meta {
                 syn::Meta::Path(path) => path,
                 _ => panic!("#[subenum] attributes take a list of identifiers"),
@@ -224,7 +224,7 @@ pub fn subenum(args: TokenStream, tokens: TokenStream) -> TokenStream {
             .flat_map(|path| path.get_ident().map(ToOwned::to_owned))
     }
 
-    //@ Phew, okay that's written. We can now build-up our enums.
+//@ Phew, okay that's written. We can now build-up our enums.
 
     for variant in &data.variants {
         for ident in subenum_idents(variant) {
@@ -232,32 +232,32 @@ pub fn subenum(args: TokenStream, tokens: TokenStream) -> TokenStream {
             let e = enum_map
                 .get_mut(&ident)
                 .expect("All subenums must be pre-declared at the top-evel attribute");
-            //@ Now, before we shove this variant into our map, let's think a moment. If we put it
-            //@ in as is, it will still have the `#[subenum]` attribute on it, and the compiler will
-            //@ barf at us. So, we want to remove that. What about other attributes? We should
-            //@ probably leave them in place, as a user would likely want any attributes on the
-            //@ initial enum to be shared by the subenum.
+//@ Now, before we shove this variant into our map, let's think a moment. If we put it
+//@ in as is, it will still have the `#[subenum]` attribute on it, and the compiler will
+//@ barf at us. So, we want to remove that. What about other attributes? We should
+//@ probably leave them in place, as a user would likely want any attributes on the
+//@ initial enum to be shared by the subenum.
             var.attrs.retain(|attr| !attr.path.is_ident(SUBENUM));
             e.variants.push(var);
         }
     }
 
-    //@ Okay! We have our enum map built up, it's time to start producing output.
-    //@ Let's think for a moment about what-all we need to produce.
-    //@ 1. The input enum: Recall, this is not a derive macro, so _none_ of the
-    //@    input will end up in code. Only our output will. Furthermore, we
-    //@    can't reproduce it directly, as it will include all of our `#[subenum]`
-    //@    attributes, so we'll have to clean it up.
-    //@ 2. The output enum(s): We want to produce not just want we built up in
-    //@    our enum map, but also any derives on the original, as well as its
-    //@    visibility.
-    //@ 3. Some `impl` blocks: We want `PartialEq` to go between our subenum and
-    //@    the original, as well as `From` to convert from the subenum to the
-    //@    original and `TryFrom` to convert from the original to the subenum,
-    //@    as conversion this way can fail.
-    //@ That's a bit of a list, so let's get started! Might as well go in the
-    //@ order of our list.
-    //@ Step 1: Sanitize the input.
+//@ Okay! We have our enum map built up, it's time to start producing output.
+//@ Let's think for a moment about what-all we need to produce.
+//@ 1. The input enum: Recall, this is not a derive macro, so _none_ of the
+//@    input will end up in code. Only our output will. Furthermore, we
+//@    can't reproduce it directly, as it will include all of our `#[subenum]`
+//@    attributes, so we'll have to clean it up.
+//@ 2. The output enum(s): We want to produce not just want we built up in
+//@    our enum map, but also any derives on the original, as well as its
+//@    visibility.
+//@ 3. Some `impl` blocks: We want `PartialEq` to go between our subenum and
+//@    the original, as well as `From` to convert from the subenum to the
+//@    original and `TryFrom` to convert from the original to the subenum,
+//@    as conversion this way can fail.
+//@ That's a bit of a list, so let's get started! Might as well go in the
+//@ order of our list.
+//@ Step 1: Sanitize the input.
     fn sanitize_input_data(data: &mut syn::DataEnum) {
         for variant in data.variants.iter_mut() {
             // Note: This is just `Vec::drain_filter`. Let's use that once
@@ -274,16 +274,16 @@ pub fn subenum(args: TokenStream, tokens: TokenStream) -> TokenStream {
     }
     sanitize_input_data(data);
 
-    //@ That wasn't too bad, onto step two; let's render our enums. We can do
-    //@ this in two ways. Either we can use the
-    //@ [`quote!`](https://docs.rs/quote/1.0.23/quote/macro.quote.html) macro
-    //@ and write out the enum, iterating over the variants, or we can construct
-    //@ a `DeriveInput` which quote already knows how to render. I like using
-    //@ data structures when they're available, so let's go with the latter.
+//@ That wasn't too bad, onto step two; let's render our enums. We can do
+//@ this in two ways. Either we can use the
+//@ [`quote!`](https://docs.rs/quote/1.0.23/quote/macro.quote.html) macro
+//@ and write out the enum, iterating over the variants, or we can construct
+//@ a `DeriveInput` which quote already knows how to render. I like using
+//@ data structures when they're available, so let's go with the latter.
     impl Enum {
         fn render(&self, input: &syn::DeriveInput) -> syn::DeriveInput {
-            //@ Let's clone the original and change the fields we're interested
-            //@ in, leaving ones like attributes to be inherited.
+//@ Let's clone the original and change the fields we're interested
+//@ in, leaving ones like attributes to be inherited.
             let mut output = input.clone();
             output.ident = self.ident.clone();
             let output_data = match &mut output.data {
@@ -297,9 +297,9 @@ pub fn subenum(args: TokenStream, tokens: TokenStream) -> TokenStream {
     }
     let output_enums = enum_map.values().map(|e| e.render(&input));
 
-    //@ Okay, onto some `impl` blocks and we're done. We'll finally start using
-    //@ the `quote` macro. We want to be able to convert from the subenum to the
-    //@ original:
+//@ Okay, onto some `impl` blocks and we're done. We'll finally start using
+//@ the `quote` macro. We want to be able to convert from the subenum to the
+//@ original:
     let child_to_parent = enum_map.values().map(|e| {
         let sub_ident = &e.ident;
         let variant = e.variants.iter();
@@ -316,8 +316,8 @@ pub fn subenum(args: TokenStream, tokens: TokenStream) -> TokenStream {
             }
         }
     });
-    //@ And from the original to the subenum. This one can fail, so we'll need
-    //@ an error type. Since we're lazy, we'll just use `()` for now.
+//@ And from the original to the subenum. This one can fail, so we'll need
+//@ an error type. Since we're lazy, we'll just use `()` for now.
     let parent_to_child = enum_map.values().map(|e| {
         let sub_ident = &e.ident;
         let variant = e.variants.iter();
@@ -336,7 +336,7 @@ pub fn subenum(args: TokenStream, tokens: TokenStream) -> TokenStream {
             }
         }
     });
-    //@ Almost there! We still need to compare (our enums to eachother):
+//@ Almost there! We still need to compare (our enums to eachother):
     let partial_eq = enum_map.values().map(|e| {
         let sub_ident = &e.ident;
         let variant: Vec<_> = e.variants.iter().collect();
@@ -365,7 +365,7 @@ pub fn subenum(args: TokenStream, tokens: TokenStream) -> TokenStream {
         }
     });
 
-    //@ Finally, we can put it all together as our macro output:
+//@ Finally, we can put it all together as our macro output:
     quote::quote! {
         #input
 
