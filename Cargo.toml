@@ -1,0 +1,16 @@
+[package]
+name = "babys-first-proc-macro"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+proc-macro = true
+name = "subenum"
+
+[dependencies]
+quote = "1.0.23"
+syn = "1.0.109"
+proc-macro2 = "1.0.51"
+
+[build-dependencies]
+tango = "0.8.3"
