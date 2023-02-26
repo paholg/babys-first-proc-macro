@@ -40,7 +40,7 @@ For more information, see
 
 Let's get started by writing our own proc-macro! We're going to write a
 simplified version of my first proc-macro,
-[subenum](https://crates.io/subenum). Subenum takes an enum as input, as well as
+[subenum](https://crates.io/crates/subenum). Subenum takes an enum as input, as well as
 some attributes to designate which variants we're interested in, and will output
 a new enum (or enums) with those variants, as well as the ability to convert and
 compare between them.
