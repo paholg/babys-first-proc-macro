@@ -231,7 +231,7 @@ pub fn subenum(args: TokenStream, tokens: TokenStream) -> TokenStream {
             //@ given `#[subenum(Foo, Bar)]`, this would be an iterator over
             //@ `Foo` and `Bar`. These are
             //@ [`Path`](https://docs.rs/syn/latest/syn/struct.Path.html)s,
-            //@ though for use they should really be `Ident`s.
+            //@ though for our use they need to be `Ident`s.
             .map(|meta| match meta {
                 syn::Meta::Path(path) => path,
                 _ => panic!("#[subenum] attributes take a list of identifiers"),

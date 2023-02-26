@@ -245,7 +245,7 @@ Okay, we now have an iterator over the interior `Meta` objects;
 given `#[subenum(Foo, Bar)]`, this would be an iterator over
 `Foo` and `Bar`. These are
 [`Path`](https://docs.rs/syn/latest/syn/struct.Path.html)s,
-though for use they should really be `Ident`s.
+though for our use they need to be `Ident`s.
 ```rust
             .map(|meta| match meta {
                 syn::Meta::Path(path) => path,
