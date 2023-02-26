@@ -187,6 +187,13 @@ pub fn subenum(args: TokenStream, tokens: TokenStream) -> TokenStream {
         .map(|ident| (ident.clone(), Enum::new(ident)))
         .collect();
 
+    //@ Okay, that's a bit ugly. We're taking each
+    //@ [`NestedMeta`](https://docs.rs/syn/latest/syn/enum.NestedMeta.html), erroring in
+    //@ the case of a literal (such as a "string"), assuming it's a path, and assuming
+    //@ that that path is an ident (as we don't support calling our proc-macro with
+    //@ `#[subenum(some::path::to::somewhere)]`; it will need the names of our subenums,
+    //@ which have to be idents).
+    //@
     //@ Now, for each variant in the input enum, we can look up the `#[subenum()]`
     //@ attribute. If it's there, we need to look at its attributes (say, `Dog`),
     //@ and, for each one, add that variant to the entry in the map.
@@ -384,6 +391,29 @@ pub fn subenum(args: TokenStream, tokens: TokenStream) -> TokenStream {
     .into()
 }
 
+//@ ## Exercises
+//@
+//@ Want to know where to go next? If you have an idea of a proc-macro that you'd
+//@ like to write, great; I hope you feel a bit more empowered to do so.
+//@
+//@ If not, I have a couple suggestions on how you could expand this proc-macro to
+//@ be more useful.
+//@
+//@ 1. One great thing about Rust is that enums can store data. Let's support enum
+//@    variants with data! Note that they can come in the
+//@    [Named](https://docs.rs/syn/latest/syn/struct.FieldsNamed.html) or
+//@    [Unnamed](https://docs.rs/syn/latest/syn/struct.FieldsUnnamed.html)
+//@    varieties.
+//@ 2. Once we have data, how about lifetimes? generics? consts? Note: This is much
+//@    more difficult than the previous suggestion.
+//@ 3. We can convert and compare between the original enum and its subenums. Maybe
+//@    we also want to convert and compare among the various subenums. How would we
+//@    do that?
+//@
+//@ There is also the lovely
+//@ [proc-macro-workshop](https://github.com/dtolnay/proc-macro-workshop) created by
+//@ @dtolnay. This has several project ideas for you, complete with test-cases!
+//@
 //@ ## Demo time
 //@
 //@ Now, we can write some tests to ensure our macro is working properly, and, more
